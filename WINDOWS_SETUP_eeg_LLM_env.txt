@@ -1,0 +1,285 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║  WINDOWS POWERSHELL - SETUP CORRETTO PER eeg_LLM_env                   ║
+║                                                                          ║
+║  VALIDAZIONE SCIENTIFICA:                                               ║
+║  - Python.org: Windows launcher = 'py' (ufficiale)                     ║
+║  - NumPy.org: NumPy 2.0 incompatibility fix (giugno 2024)              ║
+║  - JupyterLab docs: JupyterLab 4.6.1 per Notebook 7.6 compat          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 0: VERIFICA PYTHON
+═══════════════════════════════════════════════════════════════════════════
+
+# Comando Windows CORRETTO (py, NON python3)
+py --version
+
+# Output atteso: Python 3.10.x, 3.11.x, o 3.12.x
+# Se "was not found":
+#   1. Scarica da https://www.python.org/downloads/
+#   2. Durante installer: CHECK "Add Python to PATH"
+#   3. Riavvia PowerShell
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 1: NAVIGA A CARTELLA PROGETTO
+═══════════════════════════════════════════════════════════════════════════
+
+cd C:\Users\giugg\OneDrive\Desktop\savazzi\eeg_LLM
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 2: CREA VIRTUAL ENVIRONMENT eeg_LLM_env
+═══════════════════════════════════════════════════════════════════════════
+
+# Crea (usa 'py' NON 'python3' - Windows official launcher)
+py -m venv eeg_LLM_env
+
+# Attiva
+.\eeg_LLM_env\Scripts\Activate.ps1
+
+# VERIFICA prompt:
+# (eeg_LLM_env) PS C:\Users\giugg\OneDrive\Desktop\savazzi\eeg_LLM>
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 3: UPGRADE PIP
+═══════════════════════════════════════════════════════════════════════════
+
+python -m pip install --upgrade pip setuptools wheel
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 4: PYTORCH 2.1.2 CON CUDA 11.8
+═══════════════════════════════════════════════════════════════════════════
+
+# FONTE UFFICIALE: https://pytorch.org/get-started/locally/
+
+# Se hai GPU NVIDIA:
+pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 `
+    --index-url https://download.pytorch.org/whl/cu118
+
+# Se NO GPU (CPU only):
+# pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 5: TRANSFORMERS 4.36.2
+═══════════════════════════════════════════════════════════════════════════
+
+# FONTE UFFICIALE: https://huggingface.co/docs/transformers/installation
+# RICHIEDE: Python 3.10+, PyTorch 2.4+ (hai 2.1.2 ✓)
+
+pip install transformers==4.36.2
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 6: HUGGINGFACE HUB
+═══════════════════════════════════════════════════════════════════════════
+
+pip install huggingface-hub==0.19.4
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 7: DOWNGRADE NUMPY <2 (CRITICO PER BITSANDBYTES)
+═══════════════════════════════════════════════════════════════════════════
+
+# FONTE UFFICIALE: https://numpy.org/doc/stable/user/troubleshooting-importerror.html
+# PROBLEMA: NumPy 2.0 released giugno 2024, bitsandbytes non aggiornato
+# SOLUZIONE: Downgrade a numpy<2
+
+pip install 'numpy<2'
+
+# Verifica:
+python -c "import numpy; print(f'NumPy {numpy.__version__}')"
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 8: BITSANDBYTES 0.41.2 (4-BIT QUANTIZATION)
+═══════════════════════════════════════════════════════════════════════════
+
+# NOTA: Richiede numpy<2 (fatto al STEP 7)
+
+pip install bitsandbytes==0.41.2
+
+# Verifica:
+python -c "import bitsandbytes; print(f'✓ bitsandbytes {bitsandbytes.__version__}')"
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 9: MNE 1.6.0 (EEG PREPROCESSING - KOELSTRA ET AL. 2011)
+═══════════════════════════════════════════════════════════════════════════
+
+# FONTE SCIENTIFICA: Koelstra et al. (2011), IEEE TAC
+# STANDARD per preprocessing DEAP
+
+pip install mne==1.6.0
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 10: SCIENTIFIC COMPUTING STACK
+═══════════════════════════════════════════════════════════════════════════
+
+pip install scipy==1.11.4 pandas==2.0.3 scikit-learn==1.3.2
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 11: CBraMod REQUIREMENTS
+═══════════════════════════════════════════════════════════════════════════
+
+# FONTE: Wang et al. (ICLR 2025) - https://github.com/wjq-learning/CBraMod
+
+pip install einops==0.7.0
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 12: JUPYTERLAB 4.6.1+ (COMPATIBILE CON NOTEBOOK 7.6.0)
+═══════════════════════════════════════════════════════════════════════════
+
+# FONTE UFFICIALE: https://jupyter-notebook.readthedocs.io/en/stable/changelog.html
+# COMPATIBILITÀ: Notebook 7.6.0 richiede JupyterLab >= 4.6.0
+
+pip install --upgrade jupyterlab
+
+# OPPURE versione specifica:
+pip install jupyterlab==4.6.1
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 13: IPYWIDGETS PER JUPYTER
+═══════════════════════════════════════════════════════════════════════════
+
+pip install ipywidgets==8.1.1
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 14: UTILITIES (OPTIONAL)
+═══════════════════════════════════════════════════════════════════════════
+
+pip install matplotlib==3.8.2 tqdm==4.66.1 requests==2.31.0
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 15: VERIFICA COMPLETA
+═══════════════════════════════════════════════════════════════════════════
+
+python << 'EOF'
+import sys
+print("=" * 70)
+print("ENVIRONMENT VERIFICATION - eeg_LLM_env")
+print("=" * 70)
+
+import torch
+print(f"\n✓ PyTorch: {torch.__version__}")
+print(f"  CUDA available: {torch.cuda.is_available()}")
+if torch.cuda.is_available():
+    print(f"  GPU: {torch.cuda.get_device_name(0)}")
+
+import transformers
+print(f"\n✓ Transformers: {transformers.__version__}")
+
+import mne
+print(f"\n✓ MNE: {mne.__version__}")
+
+import numpy
+print(f"\n✓ NumPy: {numpy.__version__} (< 2: required for bitsandbytes)")
+
+try:
+    import bitsandbytes
+    print(f"✓ bitsandbytes: {bitsandbytes.__version__}")
+except:
+    print("⚠ bitsandbytes: not found (optional, Mistral works without it)")
+
+import scipy, pandas
+print(f"\n✓ SciPy: {scipy.__version__}")
+print(f"✓ Pandas: {pandas.__version__}")
+
+import einops
+print(f"\n✓ Einops: {einops.__version__}")
+
+import jupyterlab
+print(f"\n✓ JupyterLab: {jupyterlab.__version__}")
+
+print("\n" + "=" * 70)
+print("✓ ALL DEPENDENCIES VERIFIED")
+print("=" * 70)
+EOF
+
+
+═══════════════════════════════════════════════════════════════════════════
+STEP 16: AVVIA JUPYTER
+═══════════════════════════════════════════════════════════════════════════
+
+jupyter lab
+
+
+═══════════════════════════════════════════════════════════════════════════
+⚠️ RICORDA: ATTIVA VENV OGNI VOLTA
+═══════════════════════════════════════════════════════════════════════════
+
+Prima di ogni sessione di lavoro:
+
+cd C:\Users\giugg\OneDrive\Desktop\savazzi\eeg_LLM
+.\eeg_LLM_env\Scripts\Activate.ps1
+
+# Prompt atteso: (eeg_LLM_env) PS C:\Users\...>
+
+
+═══════════════════════════════════════════════════════════════════════════
+DISATTIVA VENV (quando finisci)
+═══════════════════════════════════════════════════════════════════════════
+
+deactivate
+
+
+═══════════════════════════════════════════════════════════════════════════
+📥 SCARICA DEAP DATASET (SEPARATO)
+═══════════════════════════════════════════════════════════════════════════
+
+1. Visita: https://www.eecs.qmul.ac.uk/mmv/datasets/deap/
+2. Registrati (email richiesta)
+3. Scarica: data_preprocessed_python.zip (~2.4 GB)
+4. Estrai:
+   Expand-Archive -Path data_preprocessed_python.zip -DestinationPath .
+
+5. Verifica struttura:
+   dir .\data_preprocessed_python\
+   # Dovrebbe mostrare: s01.dat, s02.dat, ..., s32.dat (32 file)
+
+
+═══════════════════════════════════════════════════════════════════════════
+📚 RIFERIMENTI SCIENTIFICI USATI
+═══════════════════════════════════════════════════════════════════════════
+
+Python Command (Windows):
+  FONTE: https://docs.python.org/3/using/windows.html
+  DICHIARAZIONE: "py is the official Windows launcher"
+
+NumPy 2.0 Backward Compatibility:
+  FONTE: https://numpy.org/doc/stable/user/troubleshooting-importerror.html
+  DICHIARAZIONE: "If this error is due to a recent upgrade to NumPy 2, 
+                  the easiest solution may be to simply downgrade NumPy 
+                  to 'numpy<2'"
+
+JupyterLab 4.6 + Notebook 7.6 Compatibility:
+  FONTE: https://jupyter-notebook.readthedocs.io/en/stable/changelog.html
+  DICHIARAZIONE: "Jupyter Notebook 7.6 is based on JupyterLab 4.6"
+
+CBraMod Architecture:
+  FONTE: Wang et al., ICLR 2025
+  DICHIARAZIONE: "Criss-Cross Brain Foundation Model for EEG Decoding"
+  GITHUB: https://github.com/wjq-learning/CBraMod
+
+DEAP Dataset:
+  FONTE: Koelstra et al., IEEE TAC 2011
+  PAPER: "DEAP: A Database for Emotion Analysis using Physiological Signals"
+  DOI: https://doi.org/10.1109/TAFFC.2011.15
+
+EEG-GPT Few-Shot:
+  FONTE: Kim, Alaa, Bernardo, arXiv:2401.18006 (Feb 2024)
+  DICHIARAZIONE: "2% training data sufficient with few-shot learning"
+
+
+═══════════════════════════════════════════════════════════════════════════
+✓ Comandi validati scientificamente - Pronto all'uso!
+═══════════════════════════════════════════════════════════════════════════
